@@ -1,0 +1,27 @@
+# sensor_test.py
+from gpiozero import DigitalInputDevice
+import time
+
+ir_sensor = DigitalInputDevice(14)  # GPIO14 (8번 핀)
+
+print("=" * 40)
+print("  PIR 센서 테스트 시작")
+print("  센서 앞에서 손 흔들어보세요!")
+print("  종료: Ctrl+C")
+print("=" * 40)
+
+try:
+    prev = 0
+    while True:
+        val = ir_sensor.value
+
+        if val == 1 and prev == 0:
+            print("🚨 움직임 감지!")
+        elif val == 0 and prev == 1:
+            print("✅ 움직임 없음 (대기 중...)")
+
+        prev = val
+        time.sleep(0.1)
+
+except KeyboardInterrupt:
+    print("\n테스트 종료")
