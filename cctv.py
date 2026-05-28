@@ -24,28 +24,22 @@ def play_warning_sound():
 
 
 def record_video():
-    """Linux 'timeout'과 GStreamer MJPEG 명세를 매칭하여 유실 없는 5초 녹화를 수행하는 함수"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"cctv_{timestamp}.avi"
+    filename = f"cctv_{timestamp}.h264"
     
-    print(f"📹 [녹화 시작] 쉘 직통 모드로 5초간 영상을 녹화합니다 -> 파일명: {filename}")
+    print(f"📹 [녹화 시작] -> {filename}")
     
-    # timeout -s INT 5를 통해 정확히 5초 후 Ctrl+C 인터럽트 효과를 주어 파일 정리를 마무리지음
-    cmd = f"timeout -s INT 5 gst-launch-1.0 -e libcamerasrc ! video/x-raw,width=640,height=480,framerate=15/1 ! videoconvert ! jpegenc ! avimux ! filesink location={filename}"
+    cmd = f"rpicam-vid -t 5000 -o {filename}"
     
     try:
-        # shell=True 방식으로 실행하여 리눅스 bash가 파이프라인 기호(!)를 정상적으로 처리하게 유도
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        
-        # 정상적인 타임아웃 종료 코드(124) 또는 인라인 정상 종료(0, 130) 검증
-        if result.returncode not in [0, 124, 130, -2]:
-            print(f"❌ GStreamer 파이프라인 가동 실패 (Return Code: {result.returncode})")
-            print(f"📋 상세 에러 내용:\n{result.stderr}")
+        if result.returncode == 0:
+            print(f"💾 [녹화 완료] {filename}\n")
         else:
-            print(f"💾 [녹화 완료] 영상 파일이 디렉토리에 확실하게 저장되었습니다.\n")
-            
+            print(f"❌ 실패: {result.stderr}\n")
     except Exception as e:
-        print(f"❌ 시스템 내부 스크립트 오류 발생: {e}\n")
+        print(f"❌ 오류: {e}\n")
+
 
 
 # ==========================================
